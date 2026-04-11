@@ -1,0 +1,189 @@
+//Even though we're using JS. We can improve intellisense / autocorrect in VSCode
+//Using TS types
+
+import type { ConnectionProfile } from '#utils/ConnectionProfileProcessing/ConnectionProfiles';
+import type { TestRunnerConfig } from '#config/jest.config';
+
+// Declare globals in the global namespace
+declare global {
+  // Custom global variables
+  const cp: ConnectionProfile;
+
+// Make trc available globally
+  const trc: TestRunnerConfig;
+
+  // Global instances of repository classes
+  const curatorServerApi: CuratorRepository;
+  const panelServerApi: NodeRepository;
+
+  // Fix axios typing issue
+  const axios: import('axios').AxiosStatic;
+
+  // Extend the global expect object directly
+  namespace jest {
+    interface Matchers<R> {
+      toBeOnRoute(expectedRouteName: string): Promise<R>;
+    }
+  }
+}
+// Note: Custom Jest matchers are defined in separate jest-matchers.d.ts file
+
+// Repository class types
+
+/**
+ * Token response from OAuth server
+ */
+interface TokenResponse {
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
+  scope: string;
+  token_type: string;
+}
+
+/**
+ * User info response from OAuth server
+ */
+interface UserInfo {
+  sub: string;
+  name?: string;
+  email?: string;
+  roles?: string[];
+  [key: string]: any;
+}
+
+/**
+ * Token introspection response
+ */
+interface IntrospectionResponse {
+  active: boolean;
+  scope?: string;
+  client_id?: string;
+  username?: string;
+  exp?: number;
+  [key: string]: any;
+}
+
+/**
+ * Metadata name structure for Curator Server
+ */
+interface MetadataName {
+  Name: string;
+  DataType: string;
+  AssetTypes: string[];
+  MultiValued: boolean;
+  DisplayName: string;
+  UiSchema?: string | null;
+  ResourceNames?: string;
+  Enums?: string;
+}
+
+/**
+ * Request data for adding/updating metadata
+ */
+interface AddOrUpdateMetadataRequest {
+  metadataName: MetadataName;
+  userId: string;
+}
+
+/**
+ * Request data for deleting metadata
+ */
+interface DeleteMetadataRequest {
+  name: string;
+  userId: string;
+}
+
+/**
+ * Token data for passing to panel server
+ */
+interface PanelTokenData {
+  tokens: {
+    access_token: string;
+    expires_in: number;
+    refresh_token: string;
+    scope: string;
+    token_type: string;
+  };
+}
+
+/**
+ * Axios response wrapper
+ */
+interface ApiResponse<T = any> {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: any;
+  config: any;
+}
+
+/**
+ * CuratorRepository class for communicating with Curator Server
+ */
+declare class CuratorRepository {
+  private _app: string;
+  private _url: string;
+  private _api: any;
+
+  constructor(app: string, url: string);
+
+  getByteLength(jsonData: string): number;
+  stripProtocol(url: string): string;
+  stripAfterSlash(url: string): string;
+
+  requestNewToken(
+    username: string, 
+    password: string, 
+    clientId: string, 
+    clientSecret: string, 
+    scopes?: string
+  ): Promise<TokenResponse>;
+
+  userInfo(token: string): Promise<UserInfo>;
+
+  introspect(
+    token: string, 
+    clientId: string, 
+    clientSecret: string
+  ): Promise<IntrospectionResponse>;
+
+  addOrUpdateMetadataNameV2(
+    token: string,
+    uniqueName: string,
+    dataType: string,
+    assetTypes: string,
+    multiValued: boolean,
+    userId: string,
+    displayName: string,
+    uiSchema?: string | null,
+    resourceNames?: string,
+    enums?: string
+  ): Promise<ApiResponse>;
+
+  deleteMetadataNameV2(
+    token: string,
+    uniqueName: string,
+    userId?: string
+  ): Promise<ApiResponse>;
+}
+
+/**
+ * NodeRepository class for communicating with local node server
+ */
+declare class NodeRepository {
+  private _app: string;
+  private _api: any;
+
+  constructor(app: string, url: string);
+
+  passTokenToPanelServer(data: PanelTokenData): Promise<ApiResponse>;
+  logoutUser(): Promise<boolean>;
+}
+
+// Global instances of repository classes
+declare const curatorServerApi: CuratorRepository;
+declare const panelServerApi: NodeRepository;
+
+// Fix axios typing issue
+declare const axios: import('axios').AxiosStatic;

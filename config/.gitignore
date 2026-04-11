@@ -1,0 +1,6 @@
+# Ignore environment files with sensitive credentials
+environments.json
+environments.*.json
+
+# Keep the template
+!environments.template.json

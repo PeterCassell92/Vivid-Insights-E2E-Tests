@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"playwright.env": {},
+		"playwright.reuseBrowser": true,
+		"playwright.showBrowser": true,
+		"jest.enable": false
+	}
+}

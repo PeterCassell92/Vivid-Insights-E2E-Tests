@@ -1,0 +1,19 @@
+{
+  "name": "financial-projections-e2e",
+  "packageManager": "yarn@4.9.1",
+  "scripts": {
+    "test": "cd playwright && npx playwright test",
+    "test:ui": "cd playwright && npx playwright test --ui",
+    "test:debug": "cd playwright && npx playwright test --debug",
+    "test:headed": "cd playwright && npx playwright test --headed",
+    "test:report": "cd playwright && npx playwright show-report",
+    "test:codegen": "cd playwright && npx playwright codegen",
+    "tsc:build": "npx tsc",
+    "tsc:pomtypes": "tsc --project tsconfig.types.json"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "typescript": "^5.9.3",
+    "@types/node": "^25.0.8"
+  }
+}

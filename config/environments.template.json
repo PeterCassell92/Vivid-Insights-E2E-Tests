@@ -1,0 +1,58 @@
+{
+  "dev": {
+    "baseURL": "http://localhost:3000",
+    "apiURL": "http://localhost:3001/api",
+    "users": {
+      "testUser": {
+        "username": "your_dev_username",
+        "password": "your_dev_password"
+      },
+      "adminUser": {
+        "username": "your_dev_admin",
+        "password": "your_dev_admin_password"
+      }
+    }
+  },
+  "qa": {
+    "baseURL": "https://qa.example-bank.com",
+    "apiURL": "https://qa-api.example-bank.com",
+    "users": {
+      "testUser": {
+        "username": "your_qa_username",
+        "password": "your_qa_password"
+      },
+      "adminUser": {
+        "username": "your_qa_admin",
+        "password": "your_qa_admin_password"
+      }
+    }
+  },
+  "staging": {
+    "baseURL": "https://staging.example-bank.com",
+    "apiURL": "https://staging-api.example-bank.com",
+    "users": {
+      "testUser": {
+        "username": "your_staging_username",
+        "password": "your_staging_password"
+      },
+      "adminUser": {
+        "username": "your_staging_admin",
+        "password": "your_staging_admin_password"
+      }
+    }
+  },
+  "prod": {
+    "baseURL": "https://example-bank.com",
+    "apiURL": "https://api.example-bank.com",
+    "users": {
+      "testUser": {
+        "username": "your_prod_username",
+        "password": "your_prod_password"
+      },
+      "adminUser": {
+        "username": "your_prod_admin",
+        "password": "your_prod_admin_password"
+      }
+    }
+  }
+}
