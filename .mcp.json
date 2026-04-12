@@ -3,9 +3,23 @@
     "testnexus": {
       "command": "node",
       "args": [
-        "/home/pete/Documents/LocalMCP/TestNexusMCP/mcp/dist/index.js"
+        "${LOCAL_TESTNEXUS_MCP_PATH}"
       ],
-      "env": {}
+      "env": {
+        "LOCAL_TESTNEXUS_MCP_PATH": "${LOCAL_TESTNEXUS_MCP_PATH}"
+      }
+    },
+    "github": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "-e", "GITHUB_TOOLSETS=repos,issues,pull_requests,actions",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GHMCP_VIVID_SCOPE_PAT}"
+      }
     }
   }
 }
