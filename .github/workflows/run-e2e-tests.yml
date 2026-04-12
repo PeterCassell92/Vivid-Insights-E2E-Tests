@@ -1,0 +1,144 @@
+# Receives dispatch from app repo, spins up an ephemeral E2E environment,
+# runs Playwright tests, and reports status back to the triggering commit.
+name: Run E2E Tests
+
+on:
+  repository_dispatch:
+    types: [run-e2e]
+
+env:
+  BASE_URL: http://localhost:3000
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout test repo
+        uses: actions/checkout@v4
+
+      - name: Checkout app repo (compose file only)
+        uses: actions/checkout@v4
+        with:
+          repository: PeterCassell92/FinancialProjection
+          token: ${{ secrets.E2E_STATUS_TOKEN }}
+          path: app-repo
+          sparse-checkout: |
+            financial-projections/docker-compose.ephemeral-e2e.yml
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.E2E_STATUS_TOKEN }}
+
+      - name: Set pending commit status
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.E2E_STATUS_TOKEN }}
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: 'PeterCassell92',
+              repo: 'FinancialProjection',
+              sha: context.payload.client_payload.sha,
+              state: 'pending',
+              target_url: `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`,
+              description: 'Spinning up ephemeral-e2e environment...',
+              context: 'testnexus/e2e-tests'
+            });
+
+      - name: Start ephemeral-e2e environment
+        working-directory: app-repo/financial-projections
+        env:
+          APP_IMAGE: ${{ github.event.client_payload.image_tag }}
+          APP_IMAGE_TEST: ${{ github.event.client_payload.image_tag_test }}
+        run: |
+          docker compose -f docker-compose.ephemeral-e2e.yml up -d postgres app
+
+          echo "Waiting for app to be healthy..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/api/health > /dev/null 2>&1; then
+              echo "App is healthy!"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "App failed to start within 5 minutes"
+              docker compose -f docker-compose.ephemeral-e2e.yml logs
+              exit 1
+            fi
+            echo "Attempt $i/30 — waiting 10s..."
+            sleep 10
+          done
+
+      - name: Seed database
+        working-directory: app-repo/financial-projections
+        env:
+          APP_IMAGE: ${{ github.event.client_payload.image_tag }}
+          APP_IMAGE_TEST: ${{ github.event.client_payload.image_tag_test }}
+        run: |
+          docker compose -f docker-compose.ephemeral-e2e.yml run --rm seed
+          echo "Database seeded successfully"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        id: tests
+        continue-on-error: true
+        env:
+          BASE_URL: http://localhost:3000
+        run: npx playwright test
+
+      - name: Report status to app repo
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.E2E_STATUS_TOKEN }}
+          script: |
+            const success = '${{ steps.tests.outcome }}' === 'success';
+            await github.rest.repos.createCommitStatus({
+              owner: 'PeterCassell92',
+              repo: 'FinancialProjection',
+              sha: context.payload.client_payload.sha,
+              state: success ? 'success' : 'failure',
+              target_url: `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`,
+              description: success ? 'E2E tests passed' : 'E2E tests failed',
+              context: 'testnexus/e2e-tests'
+            });
+
+      - name: Collect logs on failure
+        if: steps.tests.outcome == 'failure'
+        working-directory: app-repo/financial-projections
+        env:
+          APP_IMAGE: ${{ github.event.client_payload.image_tag }}
+          APP_IMAGE_TEST: ${{ github.event.client_payload.image_tag_test }}
+        run: docker compose -f docker-compose.ephemeral-e2e.yml logs
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Tear down ephemeral-e2e environment
+        if: always()
+        working-directory: app-repo/financial-projections
+        env:
+          APP_IMAGE: ${{ github.event.client_payload.image_tag }}
+          APP_IMAGE_TEST: ${{ github.event.client_payload.image_tag_test }}
+        run: docker compose -f docker-compose.ephemeral-e2e.yml down -v
+
+      - name: Fail if tests failed
+        if: steps.tests.outcome == 'failure'
+        run: exit 1
