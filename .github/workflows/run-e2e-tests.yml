@@ -20,7 +20,7 @@ jobs:
       - name: Checkout app repo (compose file only)
         uses: actions/checkout@v4
         with:
-          repository: PeterCassell92/FinancialProjection
+          repository: PeterCassell92/Vivid-Account-Insights
           token: ${{ secrets.E2E_STATUS_TOKEN }}
           path: app-repo
           sparse-checkout: |
@@ -40,7 +40,7 @@ jobs:
           script: |
             await github.rest.repos.createCommitStatus({
               owner: 'PeterCassell92',
-              repo: 'FinancialProjection',
+              repo: 'Vivid-Account-Insights',
               sha: context.payload.client_payload.sha,
               state: 'pending',
               target_url: `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`,
@@ -107,7 +107,7 @@ jobs:
             const success = '${{ steps.tests.outcome }}' === 'success';
             await github.rest.repos.createCommitStatus({
               owner: 'PeterCassell92',
-              repo: 'FinancialProjection',
+              repo: 'Vivid-Account-Insights',
               sha: context.payload.client_payload.sha,
               state: success ? 'success' : 'failure',
               target_url: `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`,
