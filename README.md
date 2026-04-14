@@ -1,6 +1,6 @@
 # Vivid Insights Financial Projections - E2E Tests
 
-End-to-end test suite for the [Vivid Insights Financial Projections](https://github.com/PeterCassell92/FinancialProjection) application, built with **Playwright** and **TypeScript** using the **Page Object Model (POM)** architecture pattern.
+End-to-end test suite for the [Vivid Insights Financial Projections](https://github.com/PeterCassell92/Vivid-Account-Insights) application, built with **Playwright** and **TypeScript** using the **Page Object Model (POM)** architecture pattern.
 
 ## Prerequisites
 

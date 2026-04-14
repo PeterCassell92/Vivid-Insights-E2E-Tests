@@ -3,7 +3,7 @@
 ## Application
 
 **Name:** Financial Projections (Vivid Insights)
-**Repository:** [PeterCassell92/FinancialProjection](https://github.com/PeterCassell92/FinancialProjection)
+**Repository:** [PeterCassell92/Vivid-Account-Insights](https://github.com/PeterCassell92/Vivid-Account-Insights)
 **Local path:** `../FinancialProjection/financial-projections`
 
 ## What It Does
